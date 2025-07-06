@@ -1,0 +1,2 @@
+@python wowrandchar.py
+@pause
