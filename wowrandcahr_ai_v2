@@ -109,14 +109,14 @@ chosen_p = rndc(listprof)
 # Выбор пола
 chosen_gender = rndc(GENDERS)
 
-print("----- Сгенерированный персонаж для Hardcore WoW -----")
-print(f"Фракция: {chosen_f}")
-print(f"Раса: {chosen_r}, Пол: {chosen_gender}")
-print(f"Класс: {chosen_c}")
-print(f"Первая профессия: {chosen_p}")
-print("-" * 40)  # Разделитель
-print(f"Расовый бонус: {chosen_r.racial_bonus}")
-print(f"Советы для хардкора: {chosen_c.hardcore_tip}")
-print("-" * 40)  # Разделитель
-print('Крутим гачу на вид персонажа: ' + str(rnd(0,20)) + ' раз(а)')
-print('Созвездие для WOTLK: ' + str(rnd(-8,8)))
+print(" ----- Сгенерированный персонаж для Hardcore WoW -----")
+print(f" Фракция: {chosen_f}")
+print(f" Раса: {chosen_r}, Пол: {chosen_gender}")
+print(f" Класс: {chosen_c}")
+print(f" Первая профессия: {chosen_p}")
+print(" -" * 40)  # Разделитель
+print(f" Расовый бонус: {chosen_r.racial_bonus}")
+print(f" Советы для хардкора: {chosen_c.hardcore_tip}")
+print(" -" * 40)  # Разделитель
+print(' Крутим гачу на вид персонажа: ' + str(rnd(0,20)) + ' раз(а)')
+print(' Созвездие для WOTLK: ' + str(rnd(-8,8)))
