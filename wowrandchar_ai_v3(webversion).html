@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор персонажа WoW Hardcore</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f1218;
+            color: #e0e0e0;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #1a202c;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            color: #f8b700;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .character-info {
+            margin-bottom: 20px;
+        }
+
+        .divider {
+            border-top: 1px solid #3a3a3a;
+            margin: 15px 0;
+        }
+
+        .btn-generate {
+            background-color: #f8b700;
+            color: #0f1218;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+            transition: background-color 0.3s;
+        }
+
+        .btn-generate:hover {
+            background-color: #ffcd44;
+        }
+
+        .faction-alliance {
+            color: #4a88ff;
+        }
+
+        .faction-horde {
+            color: #ff4a4a;
+        }
+
+        .character-detail {
+            margin: 8px 0;
+        }
+
+        .character-detail span {
+            font-weight: bold;
+        }
+
+        .tips {
+            background-color: #252e3d;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .header-icon {
+            width: 100px;
+            display: block;
+            margin: 0 auto 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Генератор персонажа WoW Hardcore</h1>
+        <img src="https://cdn0.iconfinder.com/data/icons/world-of-warcraft/512/World_of_Warcraft_Icon-512.png" alt="WoW Logo" class="header-icon">
+        
+        <div id="character-result">
+            <div class="character-info">
+                <div class="character-detail"><span>Фракция:</span> <span id="faction"></span></div>
+                <div class="character-detail"><span>Раса:</span> <span id="race"></span></div>
+                <div class="character-detail"><span>Пол:</span> <span id="gender"></span></div>
+                <div class="character-detail"><span>Класс:</span> <span id="class"></span></div>
+                <div class="character-detail"><span>Первая профессия:</span> <span id="profession1"></span></div>
+                <div class="character-detail"><span>Вторая профессия:</span> <span id="profession2"></span></div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="character-info">
+                <div class="character-detail"><span>Расовый бонус:</span> <span id="racial-bonus"></span></div>
+                <div class="character-detail">
+                    <span>Советы для хардкора:</span>
+                    <div class="tips" id="hardcore-tip"></div>
+                </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="character-info">
+                <div class="character-detail"><span>Крутим гачу на вид персонажа:</span> <span id="gacha-rolls"></span> раз(а)</div>
+                <div class="character-detail"><span>Созвездие для WOTLK:</span> <span id="constellation"></span></div>
+            </div>
+        </div>
+        
+        <button class="btn-generate" id="generate-btn">Сгенерировать персонажа</button>
+    </div>
+    
+    <script>
+        // Классы
+        class Race {
+            constructor(name, allowedClasses, racialBonus) {
+                this.name = name;
+                this.allowedClasses = new Set(allowedClasses);
+                this.racialBonus = racialBonus;
+            }
+            
+            toString() {
+                return this.name;
+            }
+        }
+
+        class Class {
+            constructor(name, allowedProfessions, hardcoreTip) {
+                this.name = name;
+                this.allowedProfessions = new Set(allowedProfessions);
+                this.hardcoreTip = hardcoreTip;
+            }
+            
+            toString() {
+                return this.name;
+            }
+        }
+
+        class Profession {
+            constructor(name) {
+                this.name = name;
+            }
+            
+            toString() {
+                return this.name;
+            }
+        }
+
+        // Утилиты
+        function rnd(x, y) {
+            return Math.floor(Math.random() * (y - x + 1)) + x;
+        }
+
+        function rndc(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function rndDictValue(dictionary) {
+            const values = Object.values(dictionary);
+            return values[Math.floor(Math.random() * values.length)];
+        }
+
+        // Данные
+        const professionsLiList = ['Горное дело', 'Снятие шкур', 'Травничество', 'Кузнечное дело', 'Инженерное дело', 'Ювелирное дело', 'Кожевничество', 'Алхимия', 'Портняжное дело', 'Наложение чар'];
+        const professions = {};
+
+        professionsLiList.forEach(name => {
+            professions[name] = new Profession(name);
+        });
+
+        // Добавляем отношения совместимости профессий
+        const professionSynergies = {
+            'Горное дело': ['Кузнечное дело', 'Инженерное дело', 'Ювелирное дело'],
+            'Травничество': ['Алхимия'],
+            'Снятие шкур': ['Кожевничество', 'Портняжное дело'],
+            'Кузнечное дело': ['Горное дело'],
+            'Инженерное дело': ['Горное дело'],
+            'Ювелирное дело': ['Горное дело'],
+            'Кожевничество': ['Снятие шкур'],
+            'Алхимия': ['Травничество'],
+            'Портняжное дело': ['Снятие шкур', 'Наложение чар'],
+            'Наложение чар': ['Портняжное дело']
+        };
+
+        const fractions = ['Альянс', 'Орда'];
+
+        const allCls = ['Воин', 'Паладин', 'Рога', 'Прист', 'Маг', 'Чернокнижник', 'Охотник', 'Друид', 'Шаман'];
+
+        const classes = {
+            "Воин": new Class("Воин", ['Кузнечное дело', 'Инженерное дело', 'Ювелирное дело', 'Алхимия', 'Наложение чар'], "Будьте осторожны в одиночку, ищите группу. Всегда имейте бинты."),
+            "Паладин": new Class("Паладин", ['Кузнечное дело', 'Инженерное дело', 'Ювелирное дело', 'Алхимия', 'Наложение чар'], "Используйте баффы и исцеление для выживания. Будьте поддержкой для группы."),
+            "Рога": new Class("Рога", ['Снятие шкур', 'Кузнечное дело', 'Инженерное дело', 'Ювелирное дело', 'Кожевничество', 'Алхимия', 'Наложение чар'], "Скрытность - ваш лучший друг. Избегайте открытого боя."),
+            "Прист": new Class("Прист", ['Кузнечное дело', 'Инженерное дело', 'Ювелирное дело', 'Алхимия', 'Портняжное дело', 'Наложение чар'], "Лечите и поддерживайте группу. Избегайте прямого урона."),
+            "Маг": new Class("Маг", ['Кузнечное дело', 'Инженерное дело', 'Ювелирное дело', 'Алхимия', 'Портняжное дело', 'Наложение чар'], "Держите дистанцию и используйте контроль. Будьте осторожны с маной."),
+            "Чернокнижник": new Class("Чернокнижник", ['Кузнечное дело', 'Инженерное дело', 'Ювелирное дело', 'Алхимия', 'Портняжное дело', 'Наложение чар'], "Призывайте питомцев для защиты. Используйте контроль и заклинания страха."),
+            "Охотник": new Class("Охотник", ['Снятие шкур', 'Кузнечное дело', 'Инженерное дело', 'Ювелирное дело', 'Кожевничество', 'Алхимия', 'Наложение чар'], "Держитесь подальше от врагов. Используйте питомца для танкования."),
+            "Друид": new Class("Друид", ['Снятие шкур', 'Кузнечное дело', 'Инженерное дело', 'Ювелирное дело', 'Кожевничество', 'Алхимия', 'Наложение чар'], "Универсальный класс. Подстраивайтесь под ситуацию."),
+            "Шаман": new Class("Шаман", ['Снятие шкур', 'Кузнечное дело', 'Инженерное дело', 'Ювелирное дело', 'Кожевничество', 'Алхимия', 'Наложение чар'], "Поддержка и урон в одном лице. Грамотно используйте тотемы.")
+        };
+
+        const allRaces = ['Человек', 'Дварф', 'Ночной эльф', 'Гном', 'Высший эльф', 'Орк', 'Нежить', 'Таурен', 'Тролль', 'Гоблин'];
+
+        const races = {
+            "Человек": new Race("Человек", ['Воин', 'Паладин', 'Рога', 'Прист', 'Маг', 'Чернокнижник', 'Охотник'], "Бонус к репутации."),
+            "Дварф": new Race("Дварф", ['Воин', 'Паладин', 'Охотник', 'Рога', 'Прист', 'Маг'], "Сопротивление холоду."),
+            "Ночной эльф": new Race("Ночной эльф", ['Воин', 'Охотник', 'Рога', 'Прист', 'Друид'], "Улучшенный стелс."),
+            "Гном": new Race("Гном", ['Воин', 'Рога', 'Маг', 'Чернокнижник', 'Охотник'], "Сопротивление магии тайны."),
+            "Высший эльф": new Race("Высший эльф",  ['Воин', 'Охотник', 'Рога', 'Прист', 'Маг', 'Паладин'], "Бонус к интеллекту."),
+            "Орк": new Race("Орк", ['Воин', 'Охотник', 'Рога', 'Шаман', 'Чернокнижник', 'Маг'], "Бонус к силе атаки."),
+            "Нежить": new Race("Нежить", ['Воин', 'Рога', 'Прист', 'Маг', 'Чернокнижник', 'Охотник'], "Сопротивление контролю."),
+            "Таурен": new Race("Таурен", ['Воин', 'Охотник', 'Шаман', 'Друид'], "Увеличенный запас здоровья."),
+            "Тролль": new Race("Тролль", ['Воин', 'Охотник', 'Рога', 'Прист', 'Шаман', 'Маг', 'Чернокнижник'], "Ускоренная регенерация."),
+            "Гоблин": new Race("Гоблин", ['Воин', 'Охотник', 'Рога', 'Маг', 'Чернокнижник'], "Скидки у торговцев.")
+        };
+
+        const raceFraction = [
+            [0, 1, 2, 3, 4], // 0 alliance
+            [5, 6, 7, 8, 9]  // 1 horde
+        ];
+
+        const GENDERS = ["Мужской", "Женский"];
+
+        function askFraction(raceid) {
+            for (let i = 0; i < raceFraction.length; i++) {
+                if (raceFraction[i].includes(raceid)) {
+                    return i;
+                }
+            }
+            return null;
+        }
+
+        function generateCharacter() {
+            // Выбор рассы
+            const chosenR = rndDictValue(races);
+            const raceid = allRaces.indexOf(chosenR.name);
+
+            // Выбор класса
+            const allowedClasses = [];
+            for (const name of chosenR.allowedClasses) {
+                allowedClasses.push(classes[name]);
+            }
+            const chosenC = rndc(allowedClasses);
+
+            // Определение фракции
+            const chosenF = fractions[askFraction(raceid)];
+
+            // Выбор первой профессии
+            const listprof = [];
+            for (const profName of chosenC.allowedProfessions) {
+                listprof.push(professions[profName]);
+            }
+            const chosenP = rndc(listprof);
+
+            // Выбор второй профессии с учетом совместимости
+            const allowedSecondProfessions = [];
+
+            // Добавляем профессии, подходящие классу
+            for (const profName of chosenC.allowedProfessions) {
+                const prof = professions[profName];
+                // Не добавляем уже выбранную первую профессию
+                if (prof !== chosenP) {
+                    allowedSecondProfessions.push(prof);
+                }
+            }
+
+            // Если указаны синергии для первой профессии, приоритизируем их
+            const synergyProfessions = [];
+            if (chosenP.name in professionSynergies) {
+                for (const synergyName of professionSynergies[chosenP.name]) {
+                    if (chosenC.allowedProfessions.has(synergyName) && 
+                        professions[synergyName] !== chosenP) {
+                        synergyProfessions.push(professions[synergyName]);
+                    }
+                }
+            }
+
+            // Если есть совместимые профессии, выбираем из них, иначе из всех доступных
+            let chosenP2;
+            if (synergyProfessions.length > 0) {
+                chosenP2 = rndc(synergyProfessions);
+            } else {
+                chosenP2 = rndc(allowedSecondProfessions);
+            }
+
+            // Выбор пола
+            const chosenGender = rndc(GENDERS);
+            
+            // Рандомные значения для гачи и созвездия
+            const gachaRolls = rnd(0, 20);
+            const constellation = rnd(-8, 8);
+            
+            // Возвращаем сгенерированный персонаж
+            return {
+                faction: chosenF,
+                race: chosenR,
+                gender: chosenGender,
+                class: chosenC,
+                profession1: chosenP,
+                profession2: chosenP2,
+                racialBonus: chosenR.racialBonus,
+                hardcoreTip: chosenC.hardcoreTip,
+                gachaRolls: gachaRolls,
+                constellation: constellation
+            };
+        }
+
+        function displayCharacter(character) {
+            // Установка цвета фракции
+            const factionElement = document.getElementById('faction');
+            factionElement.textContent = character.faction;
+            if (character.faction === 'Альянс') {
+                factionElement.className = 'faction-alliance';
+            } else {
+                factionElement.className = 'faction-horde';
+            }
+            
+            document.getElementById('race').textContent = character.race.name;
+            document.getElementById('gender').textContent = character.gender;
+            document.getElementById('class').textContent = character.class.name;
+            document.getElementById('profession1').textContent = character.profession1.name;
+            document.getElementById('profession2').textContent = character.profession2.name;
+            document.getElementById('racial-bonus').textContent = character.racialBonus;
+            document.getElementById('hardcore-tip').textContent = character.hardcoreTip;
+            document.getElementById('gacha-rolls').textContent = character.gachaRolls;
+            document.getElementById('constellation').textContent = character.constellation;
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generate-btn');
+            generateBtn.addEventListener('click', function() {
+                const character = generateCharacter();
+                displayCharacter(character);
+            });
+            
+            // Генерируем персонажа при загрузке страницы
+            const character = generateCharacter();
+            displayCharacter(character);
+        });
+    </script>
+</body>
+</html>
