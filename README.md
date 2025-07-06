@@ -5,6 +5,9 @@ russian language in print and data!
 
 use as is.
 
+for use requipment python
+
+
 execute:
 >python wowrandchar.py
 
