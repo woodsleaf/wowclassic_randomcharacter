@@ -6,10 +6,11 @@ russian language in print and data!
 use as is.
 
 execute:
-python wowrandchar.py
+>python wowrandchar.py
 
 or on windows run cmd file
-choice_person.cmd
+>choice_person.cmd
+
 
 Example for result:
 ```
